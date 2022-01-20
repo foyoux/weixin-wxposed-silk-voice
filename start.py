@@ -7,6 +7,8 @@ from typing import Tuple
 import av
 import pilk
 
+DEBUG = False
+
 # 需要手动设置的参数，超过 3000 按 3000 计算
 silk_time: int = 3000  # 3000 指代 60s，300 则是 6s
 
@@ -37,7 +39,8 @@ def convert_to_silk(media_path: str) -> str:
     pcm_path, sample_rate = to_pcm(media_path)
     silk_path = os.path.splitext(pcm_path)[0] + '.silk'
     pilk.encode(pcm_path, silk_path, pcm_rate=sample_rate, tencent=True)
-    os.remove(pcm_path)
+    if not DEBUG:
+        os.remove(pcm_path)
     return silk_path
 
 
@@ -116,7 +119,8 @@ if __name__ == '__main__':
 
     # 1. 拉取 sounds_db 文件
     sounds_db_path = os.path.join(folder, 'sounds_db')
-    os.system(f'adb pull /sdcard/WechatXposed/sounds/sounds_db "{sounds_db_path}"')
+    if not DEBUG:
+        os.system(f'adb pull /sdcard/WechatXposed/sounds/sounds_db "{sounds_db_path}"')
 
     # 2. 打开 sounds_db -> json
     if not os.path.exists(sounds_db_path):
@@ -150,8 +154,10 @@ if __name__ == '__main__':
             with open(sf_file, 'wb') as f:
                 f.write(b'\x02#!SILK_V3')
                 f.write(item[2])
-            os.system(f'adb push "{os.path.abspath(sf_file)}" /sdcard/WechatXposed/sounds/sf_{code}_p{sf_index}_amr')
-            os.remove(sf_file)
+            if not DEBUG:
+                os.system(
+                    f'adb push "{os.path.abspath(sf_file)}" /sdcard/WechatXposed/sounds/sf_{code}_p{sf_index}_amr')
+                os.remove(sf_file)
             sf_index += 1
 
         sounds_db.insert(code, {
@@ -164,13 +170,15 @@ if __name__ == '__main__':
             "durations": lens,
             "segment": 60
         })
-        os.remove(silk_file)
+        if not DEBUG:
+            os.remove(silk_file)
 
     # 5. 保存 sounds_db
     with open(os.path.join(folder, 'sounds_db'), 'w') as f:
         json.dump(sounds_db, f, ensure_ascii=False)
 
     # 6. 推送 sounds_db
-    os.system(f'adb push "{sounds_db_path}" /sdcard/WechatXposed/sounds/sounds_db')
-    os.remove(sounds_db_path)
-    os.system('pause')
+    if not DEBUG:
+        os.system(f'adb push "{sounds_db_path}" /sdcard/WechatXposed/sounds/sounds_db')
+        os.remove(sounds_db_path)
+        os.system('pause')
