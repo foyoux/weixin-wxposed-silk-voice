@@ -178,7 +178,7 @@ if __name__ == '__main__':
             os.remove(silk_file)
 
     # 5. 保存 sounds_db
-    with open(os.path.join(folder, 'sounds_db'), 'w') as f:
+    with open(os.path.join(folder, 'sounds_db'), 'w', encoding='utf8') as f:
         json.dump(sounds_db, f, ensure_ascii=False)
 
     # 6. 推送 sounds_db
