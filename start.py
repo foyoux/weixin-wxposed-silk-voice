@@ -119,8 +119,11 @@ if __name__ == '__main__':
     os.system(f'adb pull /sdcard/WechatXposed/sounds/sounds_db "{sounds_db_path}"')
 
     # 2. 打开 sounds_db -> json
-    with open(sounds_db_path, encoding='utf8') as f:
-        sounds_db: list = json.load(f)
+    if not os.path.exists(sounds_db_path):
+        sounds_db = []
+    else:
+        with open(sounds_db_path, encoding='utf8') as f:
+            sounds_db: list = json.load(f)
 
     # 3. 初始化 code，意指从 0 开始解析
     code = 0
