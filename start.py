@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+from typing import Tuple
 
 import av
 import pilk
@@ -55,7 +56,7 @@ def get_duration(silk_path: str) -> int:
         return i * 20
 
 
-def get_durations(silk_path: str) -> tuple[int, int, bytes]:
+def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
     """分段，3000 指 60s"""
     global silk_time
     if silk_time > 3000:
