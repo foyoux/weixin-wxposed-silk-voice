@@ -95,7 +95,10 @@ def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
 
 
 def get_code(code_list, _code=0) -> int:
-    """从 code 开始遍历 code_list，遇到缺失则返回，末尾则 +1 返回"""
+    """从 _code 开始遍历 code_list，遇到缺失则返回，末尾则 +1 返回"""
+    # 检查 是否为空
+    if len(code_list) == 0:
+        return _code
     for i in range(_code, len(code_list)):
         _code = code_list[i]['code']
         if i != _code:
