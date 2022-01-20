@@ -164,9 +164,13 @@ if __name__ == '__main__':
             # "title": f'{name} ??',
             "title": f'{name}',
             "filename": f'sf_{code}',
+            # 时间总长度长度，单位: ms
             "length": duration,
+            # 1 表示可用，准备就绪状态
             "status": 1,
+            # 序号，从 0 开始
             "code": code,
+            # 分段时间列表，单位：s
             "durations": lens,
             "segment": 60
         })
