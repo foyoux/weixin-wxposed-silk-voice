@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
     # 5. 保存 sounds_db
     with open(os.path.join(folder, 'sounds_db'), 'w') as f:
-        json.dump(sounds_db, f)
+        json.dump(sounds_db, f, ensure_ascii=False)
 
     # 6. 推送 sounds_db
     os.system(f'adb push "{sounds_db_path}" /sdcard/WechatXposed/sounds/sounds_db')
