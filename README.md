@@ -19,3 +19,6 @@ python start.py 音乐.mp3 音乐.flac 视频.mp4 # ... 接任意多媒体文件
 ```
 
 在 Windows 平台中，如果正确安装 Python，可双击 *.py 文件运行的，可直接拖拽任意多个媒体文件 到 `start.py` 上
+
+
+https://user-images.githubusercontent.com/35125624/150513393-a562bcad-3838-4799-8e86-c970bcaf55ec.mp4
