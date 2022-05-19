@@ -130,3 +130,5 @@ dmypy.json
 
 # custom gitignore
 /.idea/
+/by_size.py
+/main.py
