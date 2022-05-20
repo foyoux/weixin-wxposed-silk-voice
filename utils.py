@@ -70,6 +70,14 @@ def get_duration(silk_path: str) -> int:
         return i * 20
 
 
+def adjust_duration(duration):
+    if duration < 1:
+        return 1
+    if duration > 60:
+        return 60
+    return duration
+
+
 def main(start_durations):
     """添加silk文件"""
     folder = os.path.dirname(sys.argv[0])
@@ -106,7 +114,7 @@ def main(start_durations):
         sf_index = 0
         for item in start_durations(silk_file):
             duration += item[0]
-            lens.append(item[1])
+            lens.append(adjust_duration(item[1]))
             sf_file = f'sf_{code}_p{sf_index}_amr'
             with open(sf_file, 'wb') as f:
                 f.write(b'\x02#!SILK_V3')
