@@ -27,8 +27,8 @@ def to_pcm(in_path: str) -> tuple[str, int]:
     with av.open(in_path) as in_container:
         in_stream = in_container.streams.audio[0]
         sample_rate = in_stream.codec_context.sample_rate
-        if sample_rate > 48000:
-            sample_rate = 48000
+        if sample_rate not in [8000, 16000, 24000, 32000, 44100, 48000]:
+            sample_rate = 24000
         with av.open(out_path, 'w', 's16le') as out_container:
             out_stream = out_container.add_stream(
                 'pcm_s16le',
