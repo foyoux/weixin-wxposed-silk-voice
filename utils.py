@@ -93,10 +93,6 @@ def main(start_durations):
         with open(sounds_db_path, encoding='utf8') as f:
             sounds_db = [Sound(**sound) for sound in json.load(f)]
 
-    # 3. 整理 sounds, 顺序赋值 code
-    for i, sound in enumerate(sounds_db):
-        sound.code = i
-
     # 4. 遍历文件
     for silk_file in sys.argv[1:]:
         # 4.1 获取 silk 文件名，去除后缀，用作语音 title
@@ -106,7 +102,7 @@ def main(start_durations):
             silk_file = convert_to_silk(silk_file)
         print(silk_file)
 
-        code = len(sounds_db)
+        code = sounds_db[-1].code + 1 if sounds_db else 0
 
         # 4.2 获取分段数据及信息
         duration = 0
