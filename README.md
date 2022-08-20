@@ -1,9 +1,13 @@
 # foyou-wilk
 将任意 媒体文件 以最好音质 转为微信语音文件(支持分段) 推到手机 ，使用 wxposed 直接发送
 
+推荐配合 [foyou-king 酷狗铃声搜索和下载](https://github.com/foyoux/foyou-king) 使用
+
 ## [旧版](https://github.com/foyoux/weixin-wxposed-silk-voice/tree/old)
 
 ## 快速入门
+
+[![python version](https://img.shields.io/pypi/pyversions/foyou-wilk)](https://pypi.org/project/foyou-wilk)  [![Downloads](https://static.pepy.tech/personalized-badge/foyou-wilk?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/foyou-wilk)
 
 安装
 
@@ -15,6 +19,8 @@ pip install -U foyou-wilk
 
 安装后，会有一个 `wilk` 的命令
 
+> 请先配置 `adb` 并连接好手机，不明表看 [这里](https://github.com/foyoux/weixin-wxposed-silk-voice/tree/old)
+> 
 推送媒体文件到手机（不明白说啥，请看 [旧版](https://github.com/foyoux/weixin-wxposed-silk-voice/tree/old)）
 
 ```shell
