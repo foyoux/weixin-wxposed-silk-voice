@@ -180,8 +180,8 @@ def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
 def main():
     import argparse
     parser = argparse.ArgumentParser(
-        description='将媒体文件转为文件推到手机供微(x)信发送',
-        epilog=f'wilk({__version__}) by foyou(https://github.com/foyoux)'
+        description='将任意媒体文件转为语音文件推到手机供微(x)模块发送',
+        epilog=f'wilk({__version__}) by foyou(https://github.com/foyoux/weixin-wxposed-silk-voice)'
     )
     parser.add_argument('files', nargs='*', help='音视频文件，可任意多个')
     parser.add_argument('-t', '--time', dest='time', type=int, default=3000, help='set silk duration')
