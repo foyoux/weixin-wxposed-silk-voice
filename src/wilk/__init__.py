@@ -2,8 +2,9 @@ __version__ = '0.0.1'
 
 import json
 import os
-import sys
+import subprocess
 from dataclasses import dataclass, field, asdict
+from pathlib import Path
 from typing import List, Tuple
 
 import av
@@ -84,20 +85,26 @@ def adjust_duration(duration):
     return duration
 
 
+def get_code() -> int:
+    """wxposed 语音存储方式改变，不在存储在 sounds_db 中
+
+    获取最大的语音序号
+    """
+    subp = subprocess.run(['adb', 'shell', 'ls', '/sdcard/WechatXposed/sounds/sf_*.json'], capture_output=True)
+    assert subp.returncode == 0, 'adb shell ls /sdcard/WechatXposed/sounds/ 失败'
+    output = subp.stdout.decode('utf8')
+    code = 0
+    for i in output.splitlines():
+        i = i.split('/')[-1]  # sf_80.json
+        i = i.split('_')[-1]  # 80.json
+        i = i.split('.')[0]  # 80
+        i = int(i)
+        code = max(code, i)
+    return code
+
+
 def start(start_durations, files):
     """添加silk文件"""
-    folder = os.path.dirname(sys.argv[0])
-
-    # 1. 拉取 sounds_db 文件
-    sounds_db_path = os.path.join(folder, 'sounds_db')
-    if not DEBUG:
-        os.system(f'adb pull /sdcard/WechatXposed/sounds/sounds_db "{sounds_db_path}"')
-
-    # 2. 打开 sounds_db -> json
-    sounds_db: List[Sound] = []  # type: ignore
-    if os.path.exists(sounds_db_path):
-        with open(sounds_db_path, encoding='utf8') as f:
-            sounds_db = [Sound(**sound) for sound in json.load(f)]
 
     # 4. 遍历文件
     for silk_file in files:
@@ -108,7 +115,7 @@ def start(start_durations, files):
             silk_file = convert_to_silk(silk_file)
         print(silk_file)
 
-        code = sounds_db[-1].code + 1 if sounds_db else 0
+        code = get_code() + 1
 
         # 4.2 获取分段数据及信息
         duration = 0
@@ -127,21 +134,18 @@ def start(start_durations, files):
                 os.remove(sf_file)
             sf_index += 1
 
-        sounds_db.append(Sound(
+        sf_json = asdict(Sound(
             title=name, filename=f'sf_{code}', length=duration, status=1, code=code, durations=lens, segment=60
         ))
+        sf_json_name = f'sf_{code}.json'
+        Path(sf_json_name).write_text(json.dumps(sf_json, indent=2, ensure_ascii=False), encoding='utf8')
 
         if not DEBUG:
             os.remove(silk_file)
 
-    # 5. 保存 sounds_db
-    with open(os.path.join(folder, 'sounds_db'), 'w', encoding='utf8') as f:
-        json.dump([asdict(obj) for obj in sounds_db], f, ensure_ascii=False)
-
-    # 6. 推送 sounds_db
-    if not DEBUG:
-        os.system(f'adb push "{sounds_db_path}" /sdcard/WechatXposed/sounds/sounds_db')
-        os.remove(sounds_db_path)
+        if not DEBUG:
+            os.system(f'adb push "{sf_json_name}" /sdcard/WechatXposed/sounds/')
+            os.remove(sf_json_name)
 
 
 def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
@@ -201,4 +205,5 @@ def main():
     DEBUG = args.debug
     silk_time = args.time
 
+    os.system('chcp 65001')
     start(get_durations, [os.path.abspath(file) for file in args.files])
