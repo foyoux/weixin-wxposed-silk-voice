@@ -1,22 +1,22 @@
 import os
 import re
+from pathlib import Path
 
 
-def get_latest_tag():
-    return max(
-        {tag.name: tag.stat().st_mtime_ns for tag in os.scandir('.git/refs/tags')}.items(),
-        key=lambda item: item[1]
-    )[0]
+def main():
+    tag = os.getenv('GITHUB_REF_NAME')
+    if not tag:
+        raise RuntimeError('tag not exists')
+    if not tag.startswith('v'):
+        raise ValueError(f'tag({tag}) not starts with "v"')
+    print(f'tag: {tag}')
+    init = Path('src/wilk/__init__.py')
+    init.write_text(re.sub(
+        r'^__version__ = [\'"]\d+\.\d+\.\d+[\'"]$',
+        f"__version__ = '{tag[1:]}'",
+        init.read_text(), flags=re.M
+    ))
 
 
 if __name__ == '__main__':
-    latest_tag = get_latest_tag()
-    init_py = 'src/wilk/__init__.py'
-
-    with open(init_py, encoding='utf8') as f:
-        txt = f.read()
-
-    txt = re.sub(r"__version__ = '\d+.\d+.\d+'", f"__version__ = '{latest_tag[1:]}'", txt)
-
-    with open(init_py, 'w', encoding='utf8') as f:
-        f.write(txt)
+    main()
