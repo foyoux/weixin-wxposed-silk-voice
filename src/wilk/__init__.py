@@ -2,7 +2,7 @@ __version__ = '0.0.1'
 
 import json
 import os
-import subprocess
+import time
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import List, Tuple
@@ -14,6 +14,8 @@ DEBUG = False
 
 # 需要手动设置的参数，超过 3000 按 3000 计算
 silk_time: int = 3000  # 3000 指代 60s，300 则是 6s
+
+SOUNDS_PATH = '/storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/'
 
 
 @dataclass
@@ -85,24 +87,6 @@ def adjust_duration(duration):
     return duration
 
 
-def get_code() -> int:
-    """wxposed 语音存储方式改变，不在存储在 sounds_db 中
-
-    获取最大的语音序号
-    """
-    subp = subprocess.run(['adb', 'shell', 'ls', '/sdcard/WechatXposed/sounds/sf_*.json'], capture_output=True)
-    assert subp.returncode == 0, 'adb shell ls /sdcard/WechatXposed/sounds/ 失败'
-    output = subp.stdout.decode('utf8')
-    code = 0
-    for i in output.splitlines():
-        i = i.split('/')[-1]  # sf_80.json
-        i = i.split('_')[-1]  # 80.json
-        i = i.split('.')[0]  # 80
-        i = int(i)
-        code = max(code, i)
-    return code
-
-
 def start(start_durations, files):
     """添加silk文件"""
 
@@ -115,7 +99,7 @@ def start(start_durations, files):
             silk_file = convert_to_silk(silk_file)
         print(silk_file)
 
-        code = get_code() + 1
+        code = time.time_ns()
 
         # 4.2 获取分段数据及信息
         duration = 0
@@ -130,7 +114,7 @@ def start(start_durations, files):
                 f.write(item[2])
             if not DEBUG:
                 os.system(
-                    f'adb push "{os.path.abspath(sf_file)}" /sdcard/WechatXposed/sounds/sf_{code}_p{sf_index}_amr')
+                    f'adb push "{os.path.abspath(sf_file)}" {SOUNDS_PATH}sf_{code}_p{sf_index}_amr')
                 os.remove(sf_file)
             sf_index += 1
 
@@ -144,7 +128,8 @@ def start(start_durations, files):
             os.remove(silk_file)
 
         if not DEBUG:
-            os.system(f'adb push "{sf_json_name}" /sdcard/WechatXposed/sounds/')
+            os.system(
+                f'adb push "{sf_json_name}" {SOUNDS_PATH}')
             os.remove(sf_json_name)
 
 
