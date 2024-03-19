@@ -2,7 +2,8 @@ __version__ = '0.0.1'
 
 import json
 import os
-import time
+import re
+import subprocess
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import List, Tuple
@@ -16,6 +17,24 @@ DEBUG = False
 silk_time: int = 3000  # 3000 指代 60s，300 则是 6s
 
 SOUNDS_PATH = '/storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/'
+
+# adb shell ls /storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/
+START_CODE = None
+
+
+def get_code():
+    global START_CODE
+    if START_CODE is None:
+        a = subprocess.run('adb shell ls /storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/',
+                           capture_output=True)
+        b = a.stdout.decode('utf8').replace('\r', '').split('\n')
+        for i in b:
+            if re.match(r'sf_(\d+).json', i):
+                code = int(re.match(r'sf_(\d+).json', i).group(1))
+                if START_CODE is None or code > START_CODE:
+                    START_CODE = code
+    START_CODE += 1
+    return START_CODE
 
 
 @dataclass
@@ -99,7 +118,7 @@ def start(start_durations, files):
             silk_file = convert_to_silk(silk_file)
         print(silk_file)
 
-        code = time.time_ns()
+        code = get_code()
 
         # 4.2 获取分段数据及信息
         duration = 0
