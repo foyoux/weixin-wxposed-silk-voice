@@ -82,6 +82,7 @@ def start(start_durations, files):
 
     # 4. 遍历文件
     for silk_file in files:
+        time.sleep(0.01)
         # 4.1 获取 silk 文件名，去除后缀，用作语音 title
         name = os.path.basename(silk_file)
         name, ext = os.path.splitext(name)
