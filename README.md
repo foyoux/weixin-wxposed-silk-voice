@@ -3,8 +3,6 @@
 
 推荐配合 [foyou-king 酷狗铃声搜索和下载](https://github.com/foyoux/foyou-king) 使用
 
-## [旧版](https://github.com/foyoux/weixin-wxposed-silk-voice/tree/old)
-
 ## 快速入门
 
 [![python version](https://img.shields.io/pypi/pyversions/foyou-wilk)](https://pypi.org/project/foyou-wilk)  [![Downloads](https://static.pepy.tech/personalized-badge/foyou-wilk?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/foyou-wilk)
