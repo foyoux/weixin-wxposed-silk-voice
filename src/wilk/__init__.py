@@ -2,8 +2,7 @@ __version__ = "0.0.1"
 
 import json
 import os
-import re
-import subprocess
+import time
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import List, Tuple
@@ -11,36 +10,19 @@ from typing import List, Tuple
 import av
 import pilk
 
+# 测试模式下，不删除 PCM/SILK 文件，同时不推送至手机
 DEBUG = False
 
 # 需要手动设置的参数，超过 3000 按 3000 计算
-silk_time: int = 3000  # 3000 指代 60s，300 则是 6s
+# 3000 指代 60s，300 则是 6s
+SILK_TIME: int = 3000
 
+# 推送手机中的位置，此位置由 WechatXposed 模块决定
+# 目前有两个位置可用，WechatXposed（wechat ver.8.0.40） 会将两个位置的语音文件合并显示
 SOUNDS_PATH = (
+    # "/storage/emulated/0/WechatXposed/sounds/"
     "/storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/"
 )
-
-# adb shell ls /storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/
-START_CODE = None
-
-
-def get_code():
-    global START_CODE
-    if START_CODE is None:
-        a = subprocess.run(
-            "adb shell ls /storage/emulated/0/Android/data/com.tencent.mm/files/WechatXposed/sounds/",
-            capture_output=True,
-        )
-        b = a.stdout.decode("utf8").replace("\r", "").split("\n")
-        for i in b:
-            if re.match(r"sf_(\d+).json", i):
-                code = int(re.match(r"sf_(\d+).json", i).group(1))
-                if START_CODE is None or code > START_CODE:
-                    START_CODE = code
-        if START_CODE is None:
-            START_CODE = 0
-    START_CODE += 1
-    return START_CODE
 
 
 @dataclass
@@ -56,7 +38,7 @@ class Sound:
 
 # noinspection PyUnresolvedReferences
 def to_pcm(in_path: str) -> Tuple[str, int]:
-    """任意媒体文件转pcm"""
+    """任意媒体文件转 PCM"""
     out_path = os.path.splitext(in_path)[0] + ".pcm"
     with av.open(in_path) as in_container:
         in_stream = in_container.streams.audio[0]
@@ -72,8 +54,8 @@ def to_pcm(in_path: str) -> Tuple[str, int]:
                     frame.pts = None
                     for packet in out_stream.encode(frame):
                         out_container.mux(packet)
-            except:
-                pass
+            except Exception as e:
+                print("Warning", e.args)
     return out_path, sample_rate
 
 
@@ -85,21 +67,6 @@ def convert_to_silk(media_path: str) -> str:
     if not DEBUG:
         os.remove(pcm_path)
     return silk_path
-
-
-def get_duration(silk_path: str) -> int:
-    """获取 silk 文件持续时间"""
-    with open(silk_path, "rb") as silk:
-        silk.seek(10)
-        i = 0
-        while True:
-            size = silk.read(2)
-            if len(size) != 2:
-                break
-            i += 1
-            size = size[0] + size[1] * 16
-            silk.seek(silk.tell() + size)
-        return i * 20
 
 
 def adjust_duration(duration):
@@ -122,7 +89,7 @@ def start(start_durations, files):
             silk_file = convert_to_silk(silk_file)
         print(silk_file)
 
-        code = get_code()
+        code = int(time.time_ns() / 1000000)
 
         # 4.2 获取分段数据及信息
         duration = 0
@@ -142,6 +109,7 @@ def start(start_durations, files):
                 os.remove(sf_file)
             sf_index += 1
 
+        # noinspection PyTypeChecker
         sf_json = asdict(
             Sound(
                 title=name,
@@ -176,9 +144,7 @@ def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
         silk_cursor = frame_position
         while True:
             # 读取 frame 大小
-            # noinspection DuplicatedCode
             size = silk.read(2)
-            # size == 1 说明 silk 文件异常
             assert size != 1, "silk 文件异常"
             if len(size) == 0:
                 # 说明文件结束，定位到上次结束位置，读取完毕返回
@@ -189,7 +155,7 @@ def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
             frame_count += 1
             size = size[0] + size[1] * 16
             silk_cursor += 2 + size
-            if frame_count == silk_time:
+            if frame_count == SILK_TIME:
                 # 达到指定 时间 后，开始返回数据，重新开始
                 silk.seek(frame_position)
                 yield frame_count * 20, frame_count / 50, silk.read(
@@ -226,9 +192,9 @@ def main():
         parser.print_usage()
         return
 
-    global DEBUG, silk_time
+    global DEBUG, SILK_TIME
     DEBUG = args.debug
-    silk_time = args.time
+    SILK_TIME = args.time
 
     os.system("chcp 65001")
     start(get_durations, [os.path.abspath(file) for file in args.files])
