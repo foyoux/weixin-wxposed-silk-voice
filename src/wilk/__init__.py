@@ -17,6 +17,9 @@ DEBUG = False
 # 3000 指代 60s，300 则是 6s
 SILK_TIME: int = 3000
 
+#
+TEST = None
+
 # 推送手机中的位置，此位置由 WechatXposed 模块决定
 # 目前有两个位置可用，WechatXposed（wechat ver.8.0.40） 会将两个位置的语音文件合并显示
 SOUNDS_PATH = (
@@ -90,7 +93,10 @@ def start(start_durations, files):
             silk_file = convert_to_silk(silk_file)
         print(silk_file)
 
-        code = int(time.time_ns() / 1000000)
+        if TEST:
+            code = "test"
+        else:
+            code = int(time.time_ns() / 1000000)
 
         # 4.2 获取分段数据及信息
         duration = 0
@@ -133,6 +139,10 @@ def start(start_durations, files):
         if not DEBUG:
             os.system(f'adb push "{sf_json_name}" {SOUNDS_PATH}')
             os.remove(sf_json_name)
+
+        if TEST:
+            # 测试模式下，只推送一个语音
+            break
 
 
 def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
@@ -189,6 +199,11 @@ def main():
         help="音视频文件，也可以是文件夹（里面全是音视频文件），可任意多个",
     )
     parser.add_argument(
+        "--test",
+        action="store_true",
+        help="以固定名称推送语音文件，一般用于一次性（临时）语音",
+    )
+    parser.add_argument(
         "-t", "--time", dest="time", type=int, default=3000, help="set silk duration"
     )
     parser.add_argument("--debug", dest="debug", help="debug mode", action="store_true")
@@ -205,9 +220,10 @@ def main():
         parser.print_usage()
         return
 
-    global DEBUG, SILK_TIME
+    global DEBUG, SILK_TIME, TEST
     DEBUG = args.debug
     SILK_TIME = args.time
+    TEST = args.test
 
     os.system("chcp 65001")
     start(get_durations, yield_file(args.files))
