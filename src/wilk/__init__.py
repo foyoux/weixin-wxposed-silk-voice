@@ -94,7 +94,7 @@ def start(start_durations, files):
         print(silk_file)
 
         if TEST:
-            code = "666"
+            code = "1234567890000"
         else:
             code = int(time.time_ns() / 1000000)
 
