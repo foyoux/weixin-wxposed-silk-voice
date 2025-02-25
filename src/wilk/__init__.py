@@ -168,6 +168,14 @@ def get_durations(silk_path: str) -> Tuple[int, int, bytes]:
                 silk.seek(silk_cursor)
 
 
+def yield_file(files):
+    for i in files:
+        if os.path.isdir(i):
+            yield from [j.path for j in os.scandir(i)]
+        else:
+            yield os.path.abspath(i)
+
+
 def main():
     import argparse
 
@@ -175,7 +183,11 @@ def main():
         description="将任意媒体文件转为语音文件推到手机供微(x)模块发送",
         epilog=f"wilk({__version__}) by foyou(https://github.com/foyoux/weixin-wxposed-silk-voice)",
     )
-    parser.add_argument("files", nargs="*", help="音视频文件，可任意多个")
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="音视频文件，也可以是文件夹（里面全是音视频文件），可任意多个",
+    )
     parser.add_argument(
         "-t", "--time", dest="time", type=int, default=3000, help="set silk duration"
     )
@@ -198,4 +210,8 @@ def main():
     SILK_TIME = args.time
 
     os.system("chcp 65001")
-    start(get_durations, [os.path.abspath(file) for file in args.files])
+    start(get_durations, yield_file(args.files))
+
+
+if __name__ == "__main__":
+    main()
